@@ -20,6 +20,24 @@ Fill `.env` locally:
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_ALLOWED_CHAT_IDS`
 - optional source keys such as `FRED_API_KEY` and `OPENDART_API_KEY`
+- optional AI keys/endpoints, kept disabled until the mock loop works
+
+Initial recommended AI settings:
+
+```text
+ENABLE_LIVE_AI=false
+OPENCLAW_ENDPOINT=
+OPENCLAW_MODEL=
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash-lite
+ENABLE_GEMINI_LIVE=false
+GROK_API_KEY=
+GROK_MODEL=grok-4.20
+ENABLE_GROK_LIVE=false
+```
+
+Do not enable Gemini, Grok, or local AI before `/status`, `/refresh_mock`, and
+`/brief` work with mock data.
 
 ## First Smoke Test
 

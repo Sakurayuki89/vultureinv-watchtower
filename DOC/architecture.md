@@ -15,6 +15,9 @@ watchtower-telegram
 providers/
   source-specific adapters: mock, KRX, FRED, OpenDART, SEC
 
+ai/
+  owner-triggered text adapters: local/OpenClaw, Gemini, Grok
+
 storage/
   raw snapshots, derived snapshots, job runs, alert events
 ```
@@ -52,6 +55,10 @@ app/
   providers/fred_provider.py
   providers/opendart_provider.py
   providers/sec_provider.py
+  ai/base.py
+  ai/local_provider.py
+  ai/gemini_provider.py
+  ai/grok_provider.py
   services/ingestion_service.py
   services/snapshot_service.py
   services/alert_service.py
@@ -84,3 +91,23 @@ AI must not:
 - calculate score/risk/position size,
 - overwrite deterministic snapshots,
 - hide source timestamps.
+
+## AI Provider Defaults
+
+All live AI providers are disabled by default.
+
+Recommended owner-triggered provider order:
+
+```text
+local/OpenClaw -> Gemini -> Grok
+```
+
+Use cases:
+
+- `local/OpenClaw`: private short drafts and Telegram assistance when quality is
+  sufficient.
+- `Gemini`: low-volume free-tier summaries and development tests.
+- `Grok`: economic intelligence and research-drafting tasks when explicitly
+  enabled by the owner.
+
+Do not use any AI provider for full-universe automatic analysis in the MVP.

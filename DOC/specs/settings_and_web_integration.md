@@ -71,6 +71,18 @@ Shows:
 - snapshot endpoints,
 - integration token configured yes/no.
 
+### 6. AI Providers
+
+Shows:
+- live AI globally enabled yes/no,
+- local/OpenClaw configured yes/no,
+- Gemini configured yes/no,
+- Grok configured yes/no,
+- selected model names,
+- last owner-triggered AI call timestamp.
+
+Do not display API keys.
+
 ## API Contract For Admin
 
 ### `GET /admin`
@@ -95,6 +107,14 @@ fred_configured
 opendart_configured
 sec_user_agent_configured
 live_ai_enabled
+openclaw_configured
+openclaw_model
+gemini_configured
+gemini_model
+gemini_live_enabled
+grok_configured
+grok_model
+grok_live_enabled
 ```
 
 ### `POST /jobs/refresh/mock`
@@ -153,3 +173,28 @@ Telegram is both:
 
 It should not be the primary configuration UI. Use Telegram for status and
 manual refresh, not for editing secrets.
+
+## AI Configuration
+
+Environment variables:
+
+```text
+ENABLE_LIVE_AI=false
+OPENCLAW_ENDPOINT=
+OPENCLAW_MODEL=
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash-lite
+ENABLE_GEMINI_LIVE=false
+GROK_API_KEY=
+GROK_MODEL=grok-4.20
+ENABLE_GROK_LIVE=false
+```
+
+Rules:
+
+- all live providers are OFF by default,
+- AI calls are owner-triggered only,
+- no full-universe AI batch in the MVP,
+- no secrets are shown in admin or Telegram,
+- AI output must include provider, model, generated timestamp, and source
+  snapshot timestamp.

@@ -14,7 +14,8 @@ Current committed state:
 - Telegram bot spec,
 - Mac mini runbook,
 - VultureInv integration contract,
-- first Claude scaffold prompt.
+- first Claude scaffold prompt,
+- disabled-by-default local/OpenClaw, Gemini, and Grok settings slots.
 
 ## Current Goal
 
@@ -31,6 +32,7 @@ mock ingestion
 
 - Real KRX/FRED/OpenDART/SEC calls.
 - Grok/OpenClaw live calls.
+- Gemini live calls.
 - Automated trading.
 - Docker-only deployment.
 - Complex web UI.
