@@ -15,6 +15,12 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
+Fill `.env` and then validate:
+
+```bash
+./scripts/validate.sh
+```
+
 Fill `.env` locally:
 
 - `TELEGRAM_BOT_TOKEN`
@@ -42,6 +48,13 @@ Do not enable Gemini, Grok, or local AI before `/status`, `/refresh_mock`, and
 ## First Smoke Test
 
 ```bash
+# Option A — script (recommended)
+./scripts/run_api.sh
+
+# Option B — direct uvicorn
+uvicorn app.main:app --host 127.0.0.1 --port 8010
+
+# Option C — module mode
 python -m app.main
 ```
 
@@ -50,6 +63,14 @@ Then test:
 ```bash
 curl http://127.0.0.1:8010/health
 curl http://127.0.0.1:8010/status
+
+# Generate mock snapshots
+curl -X POST http://127.0.0.1:8010/jobs/refresh/mock
+
+# Read snapshots
+curl http://127.0.0.1:8010/snapshots/regime/latest
+curl http://127.0.0.1:8010/snapshots/flow/latest
+curl http://127.0.0.1:8010/snapshots/catalysts/latest
 ```
 
 Telegram:

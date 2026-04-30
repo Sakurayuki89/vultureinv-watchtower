@@ -82,6 +82,10 @@ Not allowed by default:
 - Codex/GPT: architecture, planning, review, repair prompts, high-risk corrections.
 - Gemini: broad documentation consistency and memory/audit work if used.
 
+Codex may also make small direct code changes when the owner explicitly asks or
+when Watchtower/VultureInv/OpenClaw/Telegram boundaries are at risk. Follow
+`DOC/codex_coding_guardrails.md`.
+
 External AI reports are review-only unless the owner explicitly says to apply
 them.
 

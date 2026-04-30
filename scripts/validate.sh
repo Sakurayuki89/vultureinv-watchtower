@@ -36,6 +36,10 @@ done
 
 if grep -RInE "(api[_-]?key|token|secret|password) *= *['\"][^'\"]{8,}" \
   --exclude-dir=.git \
+  --exclude-dir=.venv \
+  --exclude-dir=venv \
+  --exclude-dir=__pycache__ \
+  --exclude-dir=data \
   --exclude=.env.example \
   .; then
   echo "[FAIL] possible committed secret"
