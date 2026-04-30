@@ -55,6 +55,12 @@ pre{background:var(--surface2);border:1px solid var(--border);border-radius:4px;
 .btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;padding:5px 12px;border-radius:4px;font:inherit;font-size:12px}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn-primary{background:rgba(88,166,255,.15);border-color:var(--accent);color:var(--accent)}
+.btn-xs{background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;padding:2px 7px;border-radius:3px;font:inherit;font-size:11px}
+.btn-xs:hover{border-color:var(--accent);color:var(--accent)}
+.btn-xs-ok{border-color:rgba(63,185,80,.4);color:var(--green)}
+.btn-xs-ok:hover{background:rgba(63,185,80,.1)}
+.btn-xs-err{border-color:rgba(248,81,73,.4);color:var(--red)}
+.btn-xs-err:hover{background:rgba(248,81,73,.1)}
 .section-title{font-size:11px;text-transform:uppercase;color:var(--dim);margin:16px 0 8px;letter-spacing:.04em}
 .empty{color:var(--dim);font-size:12px;padding:20px;text-align:center}
 .refresh-ts{color:var(--dim);font-size:11px;margin-left:auto}
@@ -256,9 +262,17 @@ label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px}
 <script>
 const BASE = '';
 let currentTab = 'status';
-let statusInterval = null;
 
 function ts() { return new Date().toLocaleTimeString('ko-KR'); }
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -302,20 +316,20 @@ async function loadStatus() {
     document.getElementById('status-grid').innerHTML = `
       <div class="card">
         <h3>Service</h3>
-        <div class="row"><span class="k">API</span><span class="v">${dotHtml(health.status === 'ok')} ${colorVal(health.status || 'ok', 'ok')}</span></div>
-        <div class="row"><span class="k">Scheduler</span><span class="v">${dotHtml(status.scheduler?.status)} ${status.scheduler?.status || '—'}</span></div>
-        <div class="row"><span class="k">Storage</span><span class="v">${dotHtml(status.storage?.status)} ${status.storage?.status || '—'}</span></div>
-        <div class="row"><span class="k">DB path</span><span class="v" style="font-size:10px;max-width:70%;overflow:hidden;text-overflow:ellipsis">${status.storage?.db_path || '—'}</span></div>
-        <div class="row"><span class="k">Snapshots</span><span class="v">${status.storage?.snapshot_count ?? '—'}</span></div>
+        <div class="row"><span class="k">API</span><span class="v">${dotHtml(health.status === 'ok')} ${colorVal(esc(health.status || 'ok'), 'ok')}</span></div>
+        <div class="row"><span class="k">Scheduler</span><span class="v">${dotHtml(status.scheduler?.status)} ${esc(status.scheduler?.status || '—')}</span></div>
+        <div class="row"><span class="k">Storage</span><span class="v">${dotHtml(status.storage?.status)} ${esc(status.storage?.status || '—')}</span></div>
+        <div class="row"><span class="k">DB path</span><span class="v" style="font-size:10px;max-width:70%;overflow:hidden;text-overflow:ellipsis">${esc(status.storage?.db_path || '—')}</span></div>
+        <div class="row"><span class="k">Snapshots</span><span class="v">${esc(String(status.storage?.snapshot_count ?? '—'))}</span></div>
       </div>
       <div class="card">
         <h3>Latest Job Run</h3>
         ${latestJob ? `
-          <div class="row"><span class="k">Job</span><span class="v">${latestJob.job_name}</span></div>
-          <div class="row"><span class="k">Status</span><span class="v">${dotHtml(latestJob.status === 'completed')} ${latestJob.status}</span></div>
-          <div class="row"><span class="k">Started</span><span class="v" style="font-size:10px">${latestJob.started_at?.slice(0,19).replace('T',' ')}</span></div>
-          <div class="row"><span class="k">Finished</span><span class="v" style="font-size:10px">${latestJob.finished_at?.slice(0,19).replace('T',' ') || '—'}</span></div>
-          <div class="row"><span class="k">Message</span><span class="v" style="font-size:10px">${latestJob.message || '—'}</span></div>
+          <div class="row"><span class="k">Job</span><span class="v">${esc(latestJob.job_name)}</span></div>
+          <div class="row"><span class="k">Status</span><span class="v">${dotHtml(latestJob.status === 'completed')} ${esc(latestJob.status)}</span></div>
+          <div class="row"><span class="k">Started</span><span class="v" style="font-size:10px">${esc(latestJob.started_at?.slice(0,19).replace('T',' ') || '—')}</span></div>
+          <div class="row"><span class="k">Finished</span><span class="v" style="font-size:10px">${esc(latestJob.finished_at?.slice(0,19).replace('T',' ') || '—')}</span></div>
+          <div class="row"><span class="k">Message</span><span class="v" style="font-size:10px">${esc(latestJob.message || '—')}</span></div>
         ` : '<div class="empty">No job runs yet</div>'}
       </div>
       <div class="card">
@@ -323,14 +337,14 @@ async function loadStatus() {
         ${snapshots.map((s, i) => `
           <div class="row">
             <span class="k">${snapshotNames[i]}</span>
-            <span class="v">${dotHtml(s.freshness_state)} ${s.freshness_state || 'n/a'}</span>
+            <span class="v">${dotHtml(s.freshness_state)} ${esc(s.freshness_state || 'n/a')}</span>
           </div>
         `).join('')}
         <div class="row"><span class="k">VultureInv</span><span class="v">${dotHtml(status.vultureinv?.reachable)} ${status.vultureinv?.reachable ? 'reachable' : 'unreachable'}</span></div>
       </div>
     `;
   } catch(e) {
-    document.getElementById('status-grid').innerHTML = `<div class="card"><div class="empty err">Error: ${e.message}</div></div>`;
+    document.getElementById('status-grid').innerHTML = `<div class="card"><div class="empty err">Error: ${esc(e.message)}</div></div>`;
   }
 }
 
@@ -353,7 +367,7 @@ async function loadSources() {
             ${cfg.map(s => `
               <tr>
                 <td>${s.name}</td>
-                <td>${s.configured === true ? colorVal('Yes','ok') : s.configured === false ? colorVal('No','warn') : s.configured}</td>
+                <td>${s.configured === true ? colorVal('Yes','ok') : s.configured === false ? colorVal('No','warn') : esc(s.configured)}</td>
                 <td>${s.enabled ? '<span class="tag tag-warn">stub</span>' : '<span class="tag tag-off">disabled</span>'}</td>
                 <td style="color:var(--dim);font-size:11px">v1: mock provider only</td>
               </tr>
@@ -370,7 +384,7 @@ async function loadSources() {
       </div>
     `;
   } catch(e) {
-    document.getElementById('sources-content').innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    document.getElementById('sources-content').innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
 
@@ -397,11 +411,11 @@ async function loadFilters() {
         <tbody>
           ${filters.map(f => `
             <tr>
-              <td><strong>${f.name}</strong><br><span style="color:var(--dim);font-size:10px">${f.id}</span></td>
+              <td><strong>${esc(f.name)}</strong><br><span style="color:var(--dim);font-size:10px">${esc(f.id)}</span></td>
               <td>${f.enabled ? '<span class="tag tag-ok">On</span>' : '<span class="tag tag-off">Off</span>'}</td>
-              <td><div class="chip-list">${(f.market_scope||[]).map(m=>`<span class="chip">${m}</span>`).join('')}</div></td>
-              <td><div class="chip-list">${(f.source_types||[]).map(s=>`<span class="chip">${s}</span>`).join('')}</div></td>
-              <td>${f.min_importance || '—'}</td>
+              <td><div class="chip-list">${(f.market_scope||[]).map(m=>`<span class="chip">${esc(m)}</span>`).join('')}</div></td>
+              <td><div class="chip-list">${(f.source_types||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></td>
+              <td>${esc(f.min_importance || '—')}</td>
               <td>${f.telegram_enabled ? '<span class="tag tag-ok">Yes</span>' : '<span class="tag tag-off">No</span>'}</td>
               <td>${f.vultureinv_enabled ? '<span class="tag tag-ok">Yes</span>' : '<span class="tag tag-off">No</span>'}</td>
               <td>${f.requires_owner_review ? '<span class="tag tag-warn">Required</span>' : '<span class="tag tag-off">No</span>'}</td>
@@ -411,7 +425,7 @@ async function loadFilters() {
       </table>
     `;
   } catch(e) {
-    document.getElementById('filters-content').innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    document.getElementById('filters-content').innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
 
@@ -430,19 +444,19 @@ async function loadRouting() {
         <tbody>
           ${rules.map(r => `
             <tr>
-              <td style="font-size:10px;color:var(--dim)">${r.id}</td>
-              <td>${r.filter_id}</td>
+              <td style="font-size:10px;color:var(--dim)">${esc(r.id)}</td>
+              <td>${esc(r.filter_id)}</td>
               <td>${r.enabled ? '<span class="tag tag-ok">On</span>' : '<span class="tag tag-off">Off</span>'}</td>
-              <td><div class="chip-list">${(r.destinations||[]).map(d=>`<span class="chip">${d}</span>`).join('')}</div></td>
+              <td><div class="chip-list">${(r.destinations||[]).map(d=>`<span class="chip">${esc(d)}</span>`).join('')}</div></td>
               <td>${r.explain ? '<span class="tag tag-info">Yes</span>' : '<span class="tag tag-off">No</span>'}</td>
-              <td style="font-size:10px">${r.created_at?.slice(0,10)||'—'}</td>
+              <td style="font-size:10px">${esc(r.created_at?.slice(0,10)||'—')}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
     `;
   } catch(e) {
-    document.getElementById('routing-content').innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    document.getElementById('routing-content').innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
 
@@ -460,7 +474,7 @@ async function loadIntelStatus() {
         <span style="color:var(--dim)">Queue:</span>
         ${countBadges}
         <span style="color:var(--dim);margin-left:4px">total ${total}</span>
-        ${latest ? `<span style="color:var(--dim);font-size:10px;margin-left:auto">Last run: ${latest.ran_at?.slice(0,19).replace('T',' ')} — created ${latest.created_count}, skipped ${latest.skipped_count}</span>` : ''}
+        ${latest ? `<span style="color:var(--dim);font-size:10px;margin-left:auto">Last run: ${esc(latest.ran_at?.slice(0,19).replace('T',' ')||'—')} — created ${latest.created_count}, skipped ${latest.skipped_count}</span>` : ''}
       </div>
     `;
   } catch(e) {
@@ -477,8 +491,8 @@ async function runMockIntelligence() {
   try {
     const r = await fetch(BASE + '/intelligence/run/mock', {method:'POST'}).then(r=>r.json());
     const cls = r.created_count > 0 ? 'tag-ok' : 'tag-off';
-    const warn = r.warnings?.length ? `<span style="color:var(--amber);font-size:11px"> ⚠ ${r.warnings.join('; ')}</span>` : '';
-    const filters = r.matched_filters?.length ? r.matched_filters.join(', ') : '(none)';
+    const warn = r.warnings?.length ? `<span style="color:var(--amber);font-size:11px"> &#9888; ${esc(r.warnings.join('; '))}</span>` : '';
+    const filters = r.matched_filters?.length ? esc(r.matched_filters.join(', ')) : '(none)';
     el.innerHTML = `<div class="card" style="border-color:${r.created_count>0?'var(--green)':'var(--border)'}">
       <span class="tag ${cls}">created ${r.created_count}</span>
       <span class="tag tag-off" style="margin-left:4px">skipped ${r.skipped_count}</span>
@@ -489,7 +503,7 @@ async function runMockIntelligence() {
     loadQueue();
     loadIntelStatus();
   } catch(e) {
-    el.innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    el.innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
     el.style.display = 'block';
   } finally {
     btn.disabled = false;
@@ -497,33 +511,57 @@ async function runMockIntelligence() {
   }
 }
 
+function queueActions(item) {
+  var id = esc(item.id);
+  if (item.status === 'pending') {
+    return '<button class="btn-xs btn-xs-ok" data-id="' + id + '" data-status="approved" onclick="updateQueueStatus(this.dataset.id,this.dataset.status)">Approve</button>'
+         + '<button class="btn-xs btn-xs-err" data-id="' + id + '" data-status="rejected" onclick="updateQueueStatus(this.dataset.id,this.dataset.status)" style="margin-left:3px">Reject</button>';
+  }
+  return '<button class="btn-xs" data-id="' + id + '" data-status="pending" onclick="updateQueueStatus(this.dataset.id,this.dataset.status)">&#8617; Pending</button>';
+}
+
+async function updateQueueStatus(itemId, status) {
+  try {
+    const r = await fetch(BASE + '/review-queue/' + encodeURIComponent(itemId) + '/status', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({status}),
+    }).then(r => r.json());
+    if (!r.ok) throw new Error(JSON.stringify(r));
+    loadQueue();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
 async function loadQueue() {
   loadIntelStatus();
   try {
     const statusFilter = document.getElementById('queue-status-filter').value;
-    const url = BASE + '/review-queue' + (statusFilter ? '?status=' + statusFilter : '');
+    const url = BASE + '/review-queue' + (statusFilter ? '?status=' + encodeURIComponent(statusFilter) : '');
     const data = await fetch(url).then(r=>r.json());
     document.getElementById('queue-ts').textContent = ts();
     const items = data.items || [];
     document.getElementById('queue-content').innerHTML = items.length ? `
       <table>
-        <thead><tr><th>Status</th><th>Type</th><th>Title</th><th>Filter ID</th><th>Rule ID</th><th>Created</th></tr></thead>
+        <thead><tr><th>Status</th><th>Type</th><th>Title</th><th>Filter ID</th><th>Rule ID</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody>
           ${items.map(item => `
             <tr>
               <td>${item.status === 'pending' ? '<span class="tag tag-warn">Pending</span>' : item.status === 'approved' ? '<span class="tag tag-ok">Approved</span>' : '<span class="tag tag-err">Rejected</span>'}</td>
-              <td><span class="chip">${item.source_type}</span></td>
-              <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis">${item.title || '(no title)'}</td>
-              <td style="font-size:10px;color:var(--dim)">${item.matched_filter_id || '—'}</td>
-              <td style="font-size:10px;color:var(--dim)">${item.routing_rule_id || '—'}</td>
-              <td style="font-size:10px">${item.created_at?.slice(0,16).replace('T',' ')||'—'}</td>
+              <td><span class="chip">${esc(item.source_type)}</span></td>
+              <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(item.title || '(no title)')}</td>
+              <td style="font-size:10px;color:var(--dim)">${esc(item.matched_filter_id || '—')}</td>
+              <td style="font-size:10px;color:var(--dim)">${esc(item.routing_rule_id || '—')}</td>
+              <td style="font-size:10px">${esc(item.created_at?.slice(0,16).replace('T',' ')||'—')}</td>
+              <td style="white-space:nowrap">${queueActions(item)}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
-    ` : `<div class="empty">No items${statusFilter ? ' with status: ' + statusFilter : ''} — click "Run Mock Intelligence" to populate</div>`;
+    ` : `<div class="empty">No items${statusFilter ? ' with status: ' + esc(statusFilter) : ''} — click "Run Mock Intelligence" to populate</div>`;
   } catch(e) {
-    document.getElementById('queue-content').innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    document.getElementById('queue-content').innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
 
@@ -555,7 +593,7 @@ async function loadTelegram() {
       ` : ''}
     `;
   } catch(e) {
-    document.getElementById('telegram-content').innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    document.getElementById('telegram-content').innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
 
@@ -579,26 +617,26 @@ async function loadAI() {
         <div class="card">
           <h3>Provider Config</h3>
           <div class="row"><span class="k">OpenClaw</span><span class="v">${settings.openclaw_configured ? colorVal('Configured','ok') : colorVal('Not set','off')}</span></div>
-          <div class="row"><span class="k">OpenClaw model</span><span class="v">${settings.openclaw_model || '—'}</span></div>
+          <div class="row"><span class="k">OpenClaw model</span><span class="v">${esc(settings.openclaw_model || '—')}</span></div>
           <div class="row"><span class="k">Gemini</span><span class="v">${settings.gemini_configured ? colorVal('Configured','ok') : colorVal('Not set','off')}</span></div>
-          <div class="row"><span class="k">Gemini model</span><span class="v">${settings.gemini_model || '—'}</span></div>
+          <div class="row"><span class="k">Gemini model</span><span class="v">${esc(settings.gemini_model || '—')}</span></div>
           <div class="row"><span class="k">Grok</span><span class="v">${settings.grok_configured ? colorVal('Configured','ok') : colorVal('Not set','off')}</span></div>
-          <div class="row"><span class="k">Grok model</span><span class="v">${settings.grok_model || '—'}</span></div>
+          <div class="row"><span class="k">Grok model</span><span class="v">${esc(settings.grok_model || '—')}</span></div>
         </div>
       </div>
       <div class="card" style="margin-top:12px;border-color:var(--border)">
         <h3>Allowed AI Operations</h3>
         <div style="font-size:12px;line-height:1.8">
-          <div class="ok">✓ Owner-triggered text summary from stored source bundle</div>
-          <div class="ok">✓ Scheduled summary if explicitly enabled in routing policy</div>
-          <div class="err">✗ Full-universe automatic AI scoring</div>
-          <div class="err">✗ Numeric risk / position-sizing from AI output</div>
-          <div class="err">✗ Trade/entry decisions from AI provider</div>
+          <div class="ok">&#10003; Owner-triggered text summary from stored source bundle</div>
+          <div class="ok">&#10003; Scheduled summary if explicitly enabled in routing policy</div>
+          <div class="err">&#10007; Full-universe automatic AI scoring</div>
+          <div class="err">&#10007; Numeric risk / position-sizing from AI output</div>
+          <div class="err">&#10007; Trade/entry decisions from AI provider</div>
         </div>
       </div>
     `;
   } catch(e) {
-    document.getElementById('ai-content').innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    document.getElementById('ai-content').innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
 

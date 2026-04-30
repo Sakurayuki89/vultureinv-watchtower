@@ -376,6 +376,17 @@ class SQLiteStore:
             ).fetchall()
         return {row["status"]: row["cnt"] for row in rows}
 
+    def update_review_queue_status(self, item_id: str, status: str) -> bool:
+        """Update status and reviewed_at. Returns True if row was found."""
+        now = datetime.now(timezone.utc).isoformat()
+        with self._connection() as conn:
+            cursor = conn.execute(
+                "UPDATE review_queue SET status = ?, reviewed_at = ? WHERE id = ?",
+                (status, now, item_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+
     # --- Intelligence runs ---
 
     def save_intelligence_run(self, result: Dict[str, Any]) -> None:
