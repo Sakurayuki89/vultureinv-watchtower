@@ -6,9 +6,10 @@ Last updated: 2026-05-01
 
 Phase 0 scaffold complete and smoke-tested on Mac mini.
 
-Codex prepared the next implementation handoff for Watchtower Admin UI v1:
+Codex prepared implementation handoffs:
 - `DOC/watchtower_admin_ui_plan.md`
 - `prompts/claude_002_watchtower_admin_ui.md`
+- `prompts/claude_003_mock_intelligence_queue.md`
 
 Implemented:
 - `app/` FastAPI scaffold with lifespan startup/shutdown.
@@ -35,14 +36,15 @@ All endpoints verified:
 
 ## Current Goal
 
-Build Watchtower Admin UI v1 before adding real providers.
+Build the mock intelligence pipeline and Review Queue generation before adding
+real providers.
 
 Reason:
-- the owner wants the Mac mini sidecar to control news/economic intelligence
-  filters, routing, review queue, and downstream delivery policy before
-  expanding provider integrations.
-- `macmini-dashboard` is only the operations monitor; it is not the filter or
-  transmission policy UI.
+- Watchtower Admin UI v1 is now implemented.
+- The next risk to remove is whether filters and routing rules actually create
+  review queue items from stored snapshots.
+- `macmini-dashboard` remains only the operations monitor; it is not the filter
+  or transmission policy UI.
 
 ## Do Not Do Yet
 
@@ -59,12 +61,13 @@ Reason:
 Use:
 
 ```text
-prompts/claude_002_watchtower_admin_ui.md
+prompts/claude_003_mock_intelligence_queue.md
 ```
 
 Claude should implement that prompt when available, then report:
 - changed files,
 - validation output,
-- admin URL,
+- `POST /intelligence/run/mock` response,
+- review queue count before/after,
 - what remains mock/local-only,
 - `git status --short --branch`.
