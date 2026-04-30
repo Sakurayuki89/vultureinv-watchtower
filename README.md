@@ -30,6 +30,24 @@ The first useful version should run on the owner's Mac mini and provide:
 3. `watchtower-telegram`
    - Telegram commands for `/status`, `/brief`, `/refresh_mock`, and `/watchlist`.
 
+## Harness
+
+Watchtower uses a lightweight version of the VultureInv AI collaboration
+harness.
+
+Read before implementation:
+
+- `AGENTS.md`
+- `DOC/collaboration/ai_role_protocol.md`
+- `DOC/collaboration/context_tool_profiles.md`
+- `DOC/state/CURRENT_CONTEXT.md`
+
+Concrete support and integration specs:
+
+- `DOC/specs/vultureinv_support_plan.md`
+- `DOC/specs/settings_and_web_integration.md`
+- `DOC/vultureinv_integration_contract.md`
+
 ## Default Data Flow
 
 ```text
@@ -61,3 +79,9 @@ The repo starts as a documented scaffold. Claude should implement from
 
 Do not put real secrets in this repo. Copy `.env.example` to `.env` on the Mac
 mini and fill local values there.
+
+Run the repository guard with:
+
+```bash
+./scripts/validate.sh
+```

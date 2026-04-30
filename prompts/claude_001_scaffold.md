@@ -8,12 +8,17 @@ MISSION SLICE: Build the first runnable Watchtower scaffold for Mac mini local t
 
 - `AGENTS.md`
 - `README.md`
+- `DOC/collaboration/ai_role_protocol.md`
+- `DOC/collaboration/context_tool_profiles.md`
+- `DOC/state/CURRENT_CONTEXT.md`
 - `DOC/mission.md`
 - `DOC/architecture.md`
 - `DOC/data_sources.md`
 - `DOC/telegram_bot_spec.md`
 - `DOC/mac_mini_runbook.md`
 - `DOC/vultureinv_integration_contract.md`
+- `DOC/specs/vultureinv_support_plan.md`
+- `DOC/specs/settings_and_web_integration.md`
 - `.env.example`
 
 ## Do
@@ -49,6 +54,7 @@ MISSION SLICE: Build the first runnable Watchtower scaffold for Mac mini local t
 9. Restrict Telegram access to `TELEGRAM_ALLOWED_CHAT_IDS`.
 10. Add `scripts/run_api.sh` and `scripts/run_worker.sh` if useful.
 11. Update `DOC/mac_mini_runbook.md` if implementation commands differ.
+12. Keep `scripts/validate.sh` passing.
 
 ## Do Not
 
@@ -62,6 +68,7 @@ MISSION SLICE: Build the first runnable Watchtower scaffold for Mac mini local t
 ## Validation
 
 ```bash
+./scripts/validate.sh
 python3 -m py_compile $(find app -name '*.py')
 uvicorn app.main:app --host 127.0.0.1 --port 8010
 curl http://127.0.0.1:8010/health
