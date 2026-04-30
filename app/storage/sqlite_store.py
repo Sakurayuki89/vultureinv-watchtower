@@ -66,6 +66,20 @@ class SQLiteStore:
                 CREATE INDEX IF NOT EXISTS idx_review_queue_status
                 ON review_queue(status, created_at DESC)
             """)
+            conn.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_review_queue_dedup
+                ON review_queue(snapshot_id, title, matched_filter_id)
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS intelligence_runs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ran_at TEXT NOT NULL,
+                    created_count INTEGER NOT NULL DEFAULT 0,
+                    skipped_count INTEGER NOT NULL DEFAULT 0,
+                    matched_filters_json TEXT NOT NULL DEFAULT '[]',
+                    warnings_json TEXT NOT NULL DEFAULT '[]'
+                )
+            """)
             cursor_f = conn.execute("SELECT COUNT(*) FROM filters")
             if cursor_f.fetchone()[0] == 0:
                 self._seed_filters(conn)
@@ -329,11 +343,12 @@ class SQLiteStore:
                 ).fetchall()
         return [dict(row) for row in rows]
 
-    def add_review_queue_item(self, item: Dict[str, Any]) -> str:
+    def add_review_queue_item(self, item: Dict[str, Any]) -> bool:
+        """Insert a review queue item. Returns True if created, False if duplicate."""
         now = datetime.now(timezone.utc).isoformat()
         item_id = item.get("id") or str(uuid.uuid4())
         with self._connection() as conn:
-            conn.execute(
+            cursor = conn.execute(
                 """INSERT OR IGNORE INTO review_queue
                    (id, created_at, source_type, snapshot_id, title, content,
                     matched_filter_id, routing_rule_id, status, reviewed_at)
@@ -352,4 +367,45 @@ class SQLiteStore:
                 ),
             )
             conn.commit()
-        return item_id
+            return cursor.rowcount > 0
+
+    def get_review_queue_counts(self) -> Dict[str, int]:
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT status, COUNT(*) AS cnt FROM review_queue GROUP BY status"
+            ).fetchall()
+        return {row["status"]: row["cnt"] for row in rows}
+
+    # --- Intelligence runs ---
+
+    def save_intelligence_run(self, result: Dict[str, Any]) -> None:
+        now = datetime.now(timezone.utc).isoformat()
+        with self._connection() as conn:
+            conn.execute(
+                """INSERT INTO intelligence_runs
+                   (ran_at, created_count, skipped_count, matched_filters_json, warnings_json)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    now,
+                    result.get("created_count", 0),
+                    result.get("skipped_count", 0),
+                    json.dumps(result.get("matched_filters", [])),
+                    json.dumps(result.get("warnings", [])),
+                ),
+            )
+            conn.commit()
+
+    def get_latest_intelligence_run(self) -> Optional[Dict[str, Any]]:
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM intelligence_runs ORDER BY ran_at DESC LIMIT 1"
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "ran_at": row["ran_at"],
+            "created_count": row["created_count"],
+            "skipped_count": row["skipped_count"],
+            "matched_filters": json.loads(row["matched_filters_json"]),
+            "warnings": json.loads(row["warnings_json"]),
+        }

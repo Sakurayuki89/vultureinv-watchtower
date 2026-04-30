@@ -6,10 +6,11 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 
-from app.api.routes import admin, filters, health, jobs, review_queue, routing, snapshots, status
+from app.api.routes import admin, filters, health, intelligence, jobs, review_queue, routing, snapshots, status
 from app.core.config import get_settings
 from app.scheduler.jobs import setup_scheduler
 from app.services.ingestion_service import IngestionService
+from app.services.intelligence_service import IntelligenceService
 from app.services.snapshot_service import SnapshotService
 from app.services.telegram_service import TelegramService
 from app.storage.sqlite_store import SQLiteStore
@@ -33,10 +34,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     snapshot_service = SnapshotService(store)
     ingestion_service = IngestionService(snapshot_service, store)
 
+    intelligence_service = IntelligenceService(store)
+
     app.state.settings = settings
     app.state.store = store
     app.state.snapshot_service = snapshot_service
     app.state.ingestion_service = ingestion_service
+    app.state.intelligence_service = intelligence_service
 
     scheduler = setup_scheduler(ingestion_service)
     scheduler.start()
@@ -69,6 +73,7 @@ app.include_router(jobs.router)
 app.include_router(filters.router)
 app.include_router(routing.router)
 app.include_router(review_queue.router)
+app.include_router(intelligence.router)
 app.include_router(admin.router)
 
 

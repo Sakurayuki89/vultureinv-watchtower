@@ -133,6 +133,7 @@ label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px}
 <div id="tab-queue" class="tab-content">
   <div class="toolbar">
     <button class="btn btn-primary" onclick="loadQueue()">Refresh</button>
+    <button class="btn" onclick="runMockIntelligence()" id="btn-run-intel">Run Mock Intelligence</button>
     <select id="queue-status-filter" style="width:140px" onchange="loadQueue()">
       <option value="">All</option>
       <option value="pending">Pending</option>
@@ -141,6 +142,8 @@ label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px}
     </select>
     <span class="refresh-ts" id="queue-ts"></span>
   </div>
+  <div id="intel-result" style="display:none;margin-bottom:10px"></div>
+  <div id="intel-counts" style="margin-bottom:10px"></div>
   <div id="queue-content"><div class="empty">Loading...</div></div>
 </div>
 
@@ -443,7 +446,59 @@ async function loadRouting() {
   }
 }
 
+async function loadIntelStatus() {
+  try {
+    const data = await fetch(BASE + '/intelligence/status').then(r=>r.json());
+    const counts = data.queue_counts || {};
+    const total = data.queue_total || 0;
+    const latest = data.latest_run;
+    const countBadges = ['pending','approved','rejected'].map(s =>
+      `<span class="chip" style="${s==='pending'?'color:var(--amber)':s==='approved'?'color:var(--green)':'color:var(--red)'}">${s}: ${counts[s]||0}</span>`
+    ).join('');
+    document.getElementById('intel-counts').innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+        <span style="color:var(--dim)">Queue:</span>
+        ${countBadges}
+        <span style="color:var(--dim);margin-left:4px">total ${total}</span>
+        ${latest ? `<span style="color:var(--dim);font-size:10px;margin-left:auto">Last run: ${latest.ran_at?.slice(0,19).replace('T',' ')} — created ${latest.created_count}, skipped ${latest.skipped_count}</span>` : ''}
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('intel-counts').innerHTML = '';
+  }
+}
+
+async function runMockIntelligence() {
+  const btn = document.getElementById('btn-run-intel');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  const el = document.getElementById('intel-result');
+  el.style.display = 'none';
+  try {
+    const r = await fetch(BASE + '/intelligence/run/mock', {method:'POST'}).then(r=>r.json());
+    const cls = r.created_count > 0 ? 'tag-ok' : 'tag-off';
+    const warn = r.warnings?.length ? `<span style="color:var(--amber);font-size:11px"> ⚠ ${r.warnings.join('; ')}</span>` : '';
+    const filters = r.matched_filters?.length ? r.matched_filters.join(', ') : '(none)';
+    el.innerHTML = `<div class="card" style="border-color:${r.created_count>0?'var(--green)':'var(--border)'}">
+      <span class="tag ${cls}">created ${r.created_count}</span>
+      <span class="tag tag-off" style="margin-left:4px">skipped ${r.skipped_count}</span>
+      <span style="color:var(--dim);font-size:11px;margin-left:8px">matched filters: ${filters}</span>
+      ${warn}
+    </div>`;
+    el.style.display = 'block';
+    loadQueue();
+    loadIntelStatus();
+  } catch(e) {
+    el.innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
+    el.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run Mock Intelligence';
+  }
+}
+
 async function loadQueue() {
+  loadIntelStatus();
   try {
     const statusFilter = document.getElementById('queue-status-filter').value;
     const url = BASE + '/review-queue' + (statusFilter ? '?status=' + statusFilter : '');
@@ -451,22 +506,22 @@ async function loadQueue() {
     document.getElementById('queue-ts').textContent = ts();
     const items = data.items || [];
     document.getElementById('queue-content').innerHTML = items.length ? `
-      <div style="color:var(--dim);font-size:11px;margin-bottom:8px">${data.count} item(s)</div>
       <table>
-        <thead><tr><th>Status</th><th>Type</th><th>Title</th><th>Filter</th><th>Created</th></tr></thead>
+        <thead><tr><th>Status</th><th>Type</th><th>Title</th><th>Filter ID</th><th>Rule ID</th><th>Created</th></tr></thead>
         <tbody>
           ${items.map(item => `
             <tr>
               <td>${item.status === 'pending' ? '<span class="tag tag-warn">Pending</span>' : item.status === 'approved' ? '<span class="tag tag-ok">Approved</span>' : '<span class="tag tag-err">Rejected</span>'}</td>
               <td><span class="chip">${item.source_type}</span></td>
-              <td>${item.title || '(no title)'}</td>
+              <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis">${item.title || '(no title)'}</td>
               <td style="font-size:10px;color:var(--dim)">${item.matched_filter_id || '—'}</td>
+              <td style="font-size:10px;color:var(--dim)">${item.routing_rule_id || '—'}</td>
               <td style="font-size:10px">${item.created_at?.slice(0,16).replace('T',' ')||'—'}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
-    ` : `<div class="empty">No items${statusFilter ? ' with status: ' + statusFilter : ''}</div>`;
+    ` : `<div class="empty">No items${statusFilter ? ' with status: ' + statusFilter : ''} — click "Run Mock Intelligence" to populate</div>`;
   } catch(e) {
     document.getElementById('queue-content').innerHTML = `<div class="empty err">Error: ${e.message}</div>`;
   }
